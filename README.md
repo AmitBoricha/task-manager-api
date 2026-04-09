@@ -8,6 +8,7 @@ The goal of thre project is to build a simple but production style API where use
 - Basic Flask app setup
 - Project structure with config and models
 - Health check and base routes
+- signup/login is done
 
 ## Tech Stack
 - Python
@@ -16,7 +17,6 @@ The goal of thre project is to build a simple but production style API where use
 - JWT (pending)
 
 ## What I plan to add next
-- User signup & login
 - Password hashing
 - JWT authentication
 - Task CRUD APIs
