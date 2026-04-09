@@ -9,13 +9,30 @@ bcrypt = Bcrypt()
 
 @auth_bp.route("/signup", methods=["POST"])
 def signup():
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
-    hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    if not data:
+        return jsonify({"message": "Missing or invalid JSON body"}), 400
+
+    username = data.get("username", "").strip()
+    email = data.get("email", "").strip()
+    password = data.get("password", "").strip()
+
+    if not username or not email or not password:
+        return jsonify({"message": "username, email, and password are required"}), 400
+
+    existing_user = User.query.filter(
+        (User.email == email) | (User.username == username)
+    ).first()
+
+    if existing_user:
+        return jsonify({"message": "User with this email or username already exists"}), 409
+
+    hashed_password = bcrypt.generate_password_hash(password).decode("utf-8")
 
     new_user = User(
-        username=data["username"],
-        email=data["email"],
+        username=username,
+        email=email,
         password=hashed_password,
     )
 
@@ -27,11 +44,20 @@ def signup():
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-    data = request.get_json()
+    data = request.get_json(silent=True)
 
-    user = User.query.filter_by(email=data["email"]).first()
+    if not data:
+        return jsonify({"message": "Missing or invalid JSON body"}), 400
 
-    if user and bcrypt.check_password_hash(user.password, data["password"]):
+    email = data.get("email", "").strip()
+    password = data.get("password", "").strip()
+
+    if not email or not password:
+        return jsonify({"message": "email and password are required"}), 400
+
+    user = User.query.filter_by(email=email).first()
+
+    if user and bcrypt.check_password_hash(user.password, password):
         access_token = create_access_token(identity=str(user.id))
         return jsonify({"access_token": access_token}), 200
 
